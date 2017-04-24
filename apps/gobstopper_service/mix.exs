@@ -21,7 +21,7 @@ defmodule Gobstopper.Service.Mixfile do
     # Type "mix help compile.app" for more information
     def application do
         [
-            mod: { Gobstopper.Service.Application, [] },
+            mod: { Gobstopper.Service, [] },
             extra_applications: [:logger]
         ]
     end
