@@ -40,6 +40,12 @@ defmodule Gobstopper.Service.Mixfile do
     #
     # Type "mix help deps" for more examples and options
     defp deps do
-        []
+        [
+            { :ecto, "~> 2.1" },
+            { :postgrex, "~> 0.13.2" },
+            { :comeonin, "~> 3.0" },
+            { :guardian, "~> 0.14.2" },
+            { :guardian_db, "~> 0.8.0" }
+        ]
     end
 end
