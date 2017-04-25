@@ -46,7 +46,8 @@ defmodule Gobstopper.Service.Mixfile do
             { :postgrex, "~> 0.13.2" },
             { :comeonin, "~> 3.0" },
             { :guardian, "~> 0.14.2" },
-            { :guardian_db, "~> 0.8.0" }
+            { :guardian_db, "~> 0.8.0" },
+            { :protecto, github: "ScrimpyCat/Protecto" }
         ]
     end
 
