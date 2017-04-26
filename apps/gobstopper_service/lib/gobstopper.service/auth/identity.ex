@@ -1,4 +1,10 @@
 defmodule Gobstopper.Service.Auth.Identity do
+    @moduledoc """
+      Provides interfaces to identities.
+
+      Requires operations that have restricted access, meet those requirements.
+    """
+
     require Logger
     alias Gobstopper.Service.Auth.Identity
 
@@ -14,6 +20,17 @@ defmodule Gobstopper.Service.Auth.Identity do
                 { :error, "Failed to create credential" }
             { :create_credential, { :error, reason } } -> { :error, reason }
             { :jwt, { :error, _ } } -> { :error, "Could not create JWT" }
+        end
+    end
+
+    @spec create(atom, term, String.t) :: :ok | { :error, String.t }
+    def create(type, credential, token) do
+        with { :identity, identity } when is_integer(identity) <- { :identity, verify(token) },
+             { :create_credential, :ok } <- { :create_credential, Identity.Credential.create(type, identity, credential) } do
+                :ok
+        else
+            { :identity, nil } -> { :error, "Invalid token" }
+            { :create_credential, { :error, reason } } -> { :error, reason }
         end
     end
 
