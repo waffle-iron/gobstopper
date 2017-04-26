@@ -79,7 +79,7 @@ defmodule Gobstopper.Service.Auth.Identity.Credential do
       of that type associated with it, then it will succeed. Otherwise returns the
       reason of failure.
     """
-    @spec create(atom, integer, any) :: :ok | { :error, String.t }
+    @spec create(atom, integer, term) :: :ok | { :error, String.t }
     def create(type, identity, credential) do
         atom_to_module(type).create(identity, credential)
     end
@@ -133,7 +133,7 @@ defmodule Gobstopper.Service.Auth.Identity.Credential do
       If credential can be successfully authenticated, then it returns the identity.
       Otherwise returns the reason of failure.
     """
-    @spec authenticate(atom, any) :: { :ok, integer } | { :error, String.t }
+    @spec authenticate(atom, term) :: { :ok, integer } | { :error, String.t }
     def authenticate(type, credential) do
         atom_to_module(type).authenticate(credential)
     end
