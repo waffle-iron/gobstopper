@@ -8,6 +8,12 @@ defmodule Gobstopper.Service.Auth.Identity do
     require Logger
     alias Gobstopper.Service.Auth.Identity
 
+    @doc """
+      Create an identity with the initial credential.
+
+      Returns the session token on successful creation. Otherwise returns an
+      error.
+    """
     @spec create(atom, term) :: { :ok, String.t } | { :error, String.t }
     def create(type, credential) do
         with { :identity, { :ok, identity } } <- { :identity, Gobstopper.Service.Repo.insert(Identity.Model.changeset(%Identity.Model{})) },
@@ -23,6 +29,11 @@ defmodule Gobstopper.Service.Auth.Identity do
         end
     end
 
+    @doc """
+      Create a new credential to associate with an identity.
+
+      Returns `:ok` on successful creation. Otherwise returns an error.
+    """
     @spec create(atom, term, String.t) :: :ok | { :error, String.t }
     def create(type, credential, token) do
         with { :identity, identity } when is_integer(identity) <- { :identity, verify(token) },
@@ -34,6 +45,11 @@ defmodule Gobstopper.Service.Auth.Identity do
         end
     end
 
+    @doc """
+      Update a credential associated with an identity.
+
+      Returns `:ok` on successful update. Otherwise returns an error.
+    """
     @spec update(atom, term, String.t) :: :ok | { :error, String.t }
     def update(type, credential, token) do
         case verify(token) do
@@ -42,6 +58,11 @@ defmodule Gobstopper.Service.Auth.Identity do
         end
     end
 
+    @doc """
+      Remove a credential associated with an identity.
+
+      Returns `:ok` on successful removal. Otherwise returns an error.
+    """
     @spec remove(atom, String.t) :: :ok | { :error, String.t }
     def remove(type, token) do
         case verify(token) do
@@ -50,6 +71,11 @@ defmodule Gobstopper.Service.Auth.Identity do
         end
     end
 
+    @doc """
+      Login into an identity using the credential.
+
+      Returns the session token on successful login. Otherwise returns an error.
+    """
     @spec login(atom, term) :: { :ok, String.t } | { :error, String.t }
     def login(type, credential) do
         with { :id, { :ok, id } } <- { :id, Identity.Credential.authenticate(type, credential) },
@@ -65,6 +91,11 @@ defmodule Gobstopper.Service.Auth.Identity do
         end
     end
 
+    @doc """
+      Logout of an identity's active session.
+
+      Returns `:ok` on successful logout. Otherwise returns an error.
+    """
     @spec logout(String.t) :: :ok | { :error, String.t }
     def logout(token) do
         case Guardian.revoke!(token) do
@@ -73,6 +104,12 @@ defmodule Gobstopper.Service.Auth.Identity do
         end
     end
 
+    @doc """
+      Verify an identity's session.
+
+      Returns the unique ID of the identity if verifying a valid session token.
+      Otherwise returns `nil`.
+    """
     @spec verify(String.t) :: integer | nil
     def verify(token) do
         with { :ok, %{ "sub" => sub } } <- Guardian.decode_and_verify(token),
@@ -83,6 +120,12 @@ defmodule Gobstopper.Service.Auth.Identity do
         end
     end
 
+    @doc """
+      Check if a credential type is associated with an identity.
+
+      Returns whether the credential exists or not, if successful. Otherwise returns
+      an error.
+    """
     @spec credential?(atom, String.t) :: { :ok, boolean } | { :error, String.t }
     def credential?(type, token) do
         case verify(token) do
@@ -100,6 +143,12 @@ defmodule Gobstopper.Service.Auth.Identity do
         end
     end, &(&1 != nil))
 
+    @doc """
+      Get the state of all credentials an identity could be associated with.
+
+      Returns all the credentials presentable state if successful. Otherwise returns
+      an error.
+    """
     @spec all_credentials(String.t) :: { :ok, [{ atom, { :unverified | :verified, String.t } | { :none, nil } }] } | { :error, String.t }
     def all_credentials(token) do
         case verify(token) do
