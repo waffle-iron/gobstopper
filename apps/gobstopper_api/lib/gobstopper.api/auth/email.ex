@@ -65,4 +65,12 @@ defmodule Gobstopper.API.Auth.Email do
     """
     @spec exists?(token) :: { :ok, boolean } | { :error, String.t }
     def exists?(token), do: GenServer.call(@service, { :credential?, { @credential_type }, token })
+
+    @doc """
+      Login into an identity using the email credential.
+
+      Returns the session token on successful login. Otherwise returns an error.
+    """
+    @spec login(String.t, String.t) :: { :ok, token } | { :error, String.t }
+    def login(email, pass), do: GenServer.call(@service, { :login, { @credential_type, { email, pass } } })
 end
