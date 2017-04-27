@@ -8,7 +8,8 @@ defmodule Gobstopper.Service do
 
         children = [
             supervisor(Gobstopper.Service.Repo, []),
-            worker(GuardianDb.ExpiredSweeper, [])
+            worker(GuardianDb.ExpiredSweeper, []),
+            worker(Gobstopper.Service.Auth, [])
         ]
 
         opts = [strategy: :one_for_one, name: Gobstopper.Service.Supervisor]
