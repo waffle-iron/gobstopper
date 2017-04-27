@@ -10,6 +10,7 @@ defmodule Gobstopper.Service.Case do
             import Ecto
             import Ecto.Changeset
             import Ecto.Query
+            use Defecto, repo: Gobstopper.Service.Repo
         end
     end
 
