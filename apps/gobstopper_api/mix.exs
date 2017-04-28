@@ -12,7 +12,7 @@ defmodule Gobstopper.API.Mixfile do
             elixir: "~> 1.4",
             build_embedded: Mix.env == :prod,
             start_permanent: Mix.env == :prod,
-            deps: deps()
+            deps: deps(Mix.Project.umbrella?)
         ]
     end
 
@@ -36,7 +36,6 @@ defmodule Gobstopper.API.Mixfile do
     #   {:my_app, in_umbrella: true}
     #
     # Type "mix help deps" for more examples and options
-    defp deps do
-        []
-    end
+    defp deps(false), do: [{ :gobstopper_service, path: "../gobstopper_service", only: :test }]
+    defp deps(true), do: []
 end
