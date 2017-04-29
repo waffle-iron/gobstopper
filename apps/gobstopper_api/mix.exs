@@ -13,7 +13,8 @@ defmodule Gobstopper.API.Mixfile do
             elixirc_paths: elixirc_paths(Mix.env),
             build_embedded: Mix.env == :prod,
             start_permanent: Mix.env == :prod,
-            deps: deps(Mix.Project.umbrella?)
+            deps: deps(Mix.Project.umbrella?),
+            dialyzer: [plt_add_deps: :transitive]
         ]
     end
 

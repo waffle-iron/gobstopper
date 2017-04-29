@@ -14,7 +14,8 @@ defmodule Gobstopper.Service.Mixfile do
             build_embedded: Mix.env == :prod,
             start_permanent: Mix.env == :prod,
             aliases: aliases(),
-            deps: deps()
+            deps: deps(),
+            dialyzer: [plt_add_deps: :transitive]
         ]
     end
 
