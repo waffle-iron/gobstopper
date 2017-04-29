@@ -26,7 +26,7 @@ defmodule Gobstopper.API.Auth.Email do
     @spec get(Auth.token) :: { :ok, { :unverified | :verified, String.t } | { :none, nil } } | { :error, String.t }
     def get(token) do
         case GenServer.call(@service, { :all_credentials, token }) do
-            { :ok, credentials } -> credentials[@credential_type]
+            { :ok, credentials } -> { :ok, credentials[@credential_type] }
             error -> error
         end
     end
