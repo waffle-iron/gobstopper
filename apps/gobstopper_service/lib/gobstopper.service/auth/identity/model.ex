@@ -9,9 +9,13 @@ defmodule Gobstopper.Service.Auth.Identity.Model do
 
       ###:id
       Is the unique reference to the identity entry. Is an `integer`.
+
+      ###:identity
+      Is the unique ID to externally reference the identity entry. Is an `uuid`.
     """
 
     schema "identities" do
+        field :identity, Ecto.UUID, read_after_writes: true
         timestamps()
     end
 

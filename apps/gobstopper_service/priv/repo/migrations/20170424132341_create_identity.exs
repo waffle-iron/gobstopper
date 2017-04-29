@@ -3,7 +3,13 @@ defmodule Gobstopper.Service.Repo.Migrations.CreateIdentity do
 
     def change do
         create table(:identities) do
+            add :identity, :uuid,
+                default: fragment("uuid_generate_v4()"),
+                null: false
+
             timestamps()
         end
+
+        create index(:identities, [:identity], unique: true)
     end
 end
