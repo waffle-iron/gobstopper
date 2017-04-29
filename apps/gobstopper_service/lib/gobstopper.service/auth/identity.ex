@@ -8,6 +8,9 @@ defmodule Gobstopper.Service.Auth.Identity do
     require Logger
     alias Gobstopper.Service.Auth.Identity
 
+    defp unique_identity({ :error, %{ errors: [identity: _] } }), do: unique_identity(Gobstopper.Service.Repo.insert(Identity.Model.changeset(%Identity.Model{})))
+    defp unique_identity(identity), do: identity
+
     @doc """
       Create an identity with the initial credential.
 
@@ -16,7 +19,7 @@ defmodule Gobstopper.Service.Auth.Identity do
     """
     @spec create(atom, term) :: { :ok, String.t } | { :error, String.t }
     def create(type, credential) do
-        with { :identity, { :ok, identity } } <- { :identity, Gobstopper.Service.Repo.insert(Identity.Model.changeset(%Identity.Model{})) },
+        with { :identity, { :ok, identity } } <- { :identity, unique_identity(Gobstopper.Service.Repo.insert(Identity.Model.changeset(%Identity.Model{}))) },
              { :create_credential, :ok } <- { :create_credential, Identity.Credential.create(type, identity.id, credential) },
              { :jwt, { :ok, jwt, _ } } <- { :jwt, Guardian.encode_and_sign(identity) } do
                 { :ok, jwt }
