@@ -25,5 +25,6 @@ defmodule Gobstopper.Service.Auth.Identity.Model do
     def changeset(struct, params \\ %{}) do
         struct
         |> cast(params, [])
+        |> unique_constraint(:identity)
     end
 end

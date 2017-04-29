@@ -3,10 +3,16 @@ defmodule Gobstopper.Service.Auth.Identity.ModelTest do
 
     alias Gobstopper.Service.Auth.Identity
 
-    @valid_model %Identity.Model{}
-
     test "empty" do
         assert_change(%Identity.Model{})
         |> assert_insert(:ok)
+    end
+
+    test "uniqueness" do
+        identity = Gobstopper.Service.Repo.insert!(Identity.Model.changeset(%Identity.Model{}))
+
+        assert_change(%Identity.Model{ identity: identity.identity })
+        |> assert_insert(:error)
+        |> assert_error_value(:identity, { "has already been taken", [] })
     end
 end
