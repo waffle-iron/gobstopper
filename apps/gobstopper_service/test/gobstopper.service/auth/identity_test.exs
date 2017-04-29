@@ -104,7 +104,7 @@ defmodule Gobstopper.Service.Auth.IdentityTest do
             identity = Gobstopper.Service.Repo.insert!(Identity.Model.changeset(%Identity.Model{}))
             { :ok, token, _ } = Guardian.encode_and_sign(identity)
 
-            assert identity.id == Identity.verify(token)
+            assert identity.identity == Identity.verify(token)
             Identity.logout(token)
             assert nil == Identity.verify(token)
         end

@@ -39,7 +39,7 @@ defmodule Gobstopper.Service.Auth.Identity do
     """
     @spec create(atom, term, String.t) :: :ok | { :error, String.t }
     def create(type, credential, token) do
-        with { :identity, identity } when is_integer(identity) <- { :identity, verify(token) },
+        with { :identity, identity } when is_integer(identity) <- { :identity, verify_id(token) },
              { :create_credential, :ok } <- { :create_credential, Identity.Credential.create(type, identity, credential) } do
                 :ok
         else
@@ -55,7 +55,7 @@ defmodule Gobstopper.Service.Auth.Identity do
     """
     @spec update(atom, term, String.t) :: :ok | { :error, String.t }
     def update(type, credential, token) do
-        case verify(token) do
+        case verify_id(token) do
             nil -> { :error, "Invalid token" }
             identity -> Identity.Credential.change(type, identity, credential)
         end
@@ -68,7 +68,7 @@ defmodule Gobstopper.Service.Auth.Identity do
     """
     @spec remove(atom, String.t) :: :ok | { :error, String.t }
     def remove(type, token) do
-        case verify(token) do
+        case verify_id(token) do
             nil -> { :error, "Invalid token" }
             identity -> Identity.Credential.revoke(type, identity)
         end
@@ -107,17 +107,27 @@ defmodule Gobstopper.Service.Auth.Identity do
         end
     end
 
+    @spec verify_id(String.t) :: integer | nil
+    defp verify_id(token) do
+        with { :ok, %{ "sub" => sub } } <- Guardian.decode_and_verify(token),
+             { :ok, identity } <- Guardian.serializer.from_token(sub) do
+                identity.id
+        else
+            _ -> nil
+        end
+    end
+
     @doc """
       Verify an identity's session.
 
       Returns the unique ID of the identity if verifying a valid session token.
       Otherwise returns `nil`.
     """
-    @spec verify(String.t) :: integer | nil
+    @spec verify(String.t) :: String.t | nil
     def verify(token) do
         with { :ok, %{ "sub" => sub } } <- Guardian.decode_and_verify(token),
              { :ok, identity } <- Guardian.serializer.from_token(sub) do
-                identity.id
+                identity.identity
         else
             _ -> nil
         end
@@ -131,7 +141,7 @@ defmodule Gobstopper.Service.Auth.Identity do
     """
     @spec credential?(atom, String.t) :: { :ok, boolean } | { :error, String.t }
     def credential?(type, token) do
-        case verify(token) do
+        case verify_id(token) do
             nil -> { :error, "Invalid token" }
             identity -> { :ok, Identity.Credential.credential?(type, identity) }
         end
@@ -154,7 +164,7 @@ defmodule Gobstopper.Service.Auth.Identity do
     """
     @spec all_credentials(String.t) :: { :ok, [{ atom, { :unverified | :verified, String.t } | { :none, nil } }] } | { :error, String.t }
     def all_credentials(token) do
-        case verify(token) do
+        case verify_id(token) do
             nil -> { :error, "Invalid token" }
             identity -> { :ok, (for type <- @credential_types, do: { type, Identity.Credential.info(type, identity) }) }
         end

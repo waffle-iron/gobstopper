@@ -6,6 +6,7 @@ defmodule Gobstopper.API.Auth do
     @service Gobstopper.Service.Auth
 
     @type token :: String.t
+    @type uuid :: String.t
 
     @doc """
       Logout of an identity's active session.
@@ -22,6 +23,6 @@ defmodule Gobstopper.API.Auth do
       Returns the unique ID of the identity if verifying a valid session token.
       Otherwise returns `nil`.
     """
-    @spec verify(token) :: integer | nil
+    @spec verify(token) :: uuid | nil
     def verify(token), do: GenServer.call(@service, { :verify, token })
 end
