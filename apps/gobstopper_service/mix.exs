@@ -54,7 +54,7 @@ defmodule Gobstopper.Service.Mixfile do
             { :guardian, "~> 0.14.2" },
             { :guardian_db, "~> 0.8.0" },
             { :protecto, github: "ScrimpyCat/Protecto" },
-            { :defecto, github: "ScrimpyCat/Defecto" }
+            { :defecto, github: "ScrimpyCat/Defecto", only: :test }
         ]
     end
 
