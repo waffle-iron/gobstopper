@@ -14,9 +14,6 @@ defmodule Gobstopper.Service.Auth.Identity.Credential.Email.Model do
       ###:identity_id
       Is the identity the email credential belongs to. Is an `integer`.
 
-      ###:email
-      Is the email part of the credential. Is a `string`.
-
       ###:password
       Is the password part of the credential. Is a `string`.
 
@@ -26,7 +23,6 @@ defmodule Gobstopper.Service.Auth.Identity.Credential.Email.Model do
 
     schema "email_credentials" do
         belongs_to :identity, Gobstopper.Service.Auth.Identity.Model
-        field :email, :string
         field :password, :string, virtual: true
         field :password_hash, :string
         timestamps()
@@ -36,18 +32,16 @@ defmodule Gobstopper.Service.Auth.Identity.Credential.Email.Model do
       Builds a changeset for insertion based on the `struct` and `params`.
 
       Enforces:
-      * `email` field is required
+      * `identity_id` field is required
       * `password` field is required
-      * `email` field is a valid email
-      * `email` field is unique
+      * `identity_id` field is unique
+      * `identity_id` field is associated with an entry in `Gobstopper.Service.Auth.Identity.Model`
     """
     def insert_changeset(struct, params \\ %{}) do
         struct
-        |> cast(params, [:identity_id, :email, :password])
-        |> validate_required([:identity_id, :email, :password])
-        |> validate_email(:email)
+        |> cast(params, [:identity_id, :password])
+        |> validate_required([:identity_id, :password])
         |> format_hash(:password)
-        |> unique_constraint(:email)
         |> assoc_constraint(:identity)
         |> unique_constraint(:identity_id)
     end
@@ -56,20 +50,17 @@ defmodule Gobstopper.Service.Auth.Identity.Credential.Email.Model do
       Builds a changeset for update based on the `struct` and `params`.
 
       Enforces:
-      * `email` field is not empty
+      * `identity_id` field is not empty
       * `password` field is not empty
-      * `email` field is a valid email
-      * `email` field is unique
+      * `identity_id` field is unique
+      * `identity_id` field is associated with an entry in `Gobstopper.Service.Auth.Identity.Model`
     """
     def update_changeset(struct, params \\ %{}) do
         struct
-        |> cast(params, [:identity_id, :email, :password])
+        |> cast(params, [:identity_id, :password])
         |> validate_emptiness(:identity_id)
-        |> validate_emptiness(:email)
         |> validate_emptiness(:password)
-        |> validate_email(:email)
         |> format_hash(:password)
-        |> unique_constraint(:email)
         |> assoc_constraint(:identity)
         |> unique_constraint(:identity_id)
     end

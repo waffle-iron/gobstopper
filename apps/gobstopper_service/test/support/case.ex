@@ -16,10 +16,14 @@ defmodule Gobstopper.Service.Case do
 
     setup tags do
         :ok = Ecto.Adapters.SQL.Sandbox.checkout(Gobstopper.Service.Repo)
+        :ok = Ecto.Adapters.SQL.Sandbox.checkout(Sherbet.Service.Repo)
 
         unless tags[:async] do
             Ecto.Adapters.SQL.Sandbox.mode(Gobstopper.Service.Repo, { :shared, self() })
+            Ecto.Adapters.SQL.Sandbox.mode(Sherbet.Service.Repo, { :shared, self() })
         end
+
+        :timer.sleep(100)
 
         :ok
     end

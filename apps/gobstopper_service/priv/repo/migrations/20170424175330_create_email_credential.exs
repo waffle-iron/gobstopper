@@ -6,8 +6,8 @@ defmodule Gobstopper.Service.Repo.Migrations.CreateEmailCredential do
             add :identity_id, references(:identities),
                 null: false
 
-            add :email, :string,
-                null: false
+            # add :email, :string,
+            #     null: false
 
             add :password_hash, :string,
                 null: false
@@ -16,6 +16,6 @@ defmodule Gobstopper.Service.Repo.Migrations.CreateEmailCredential do
         end
 
         create index(:email_credentials, [:identity_id], unique: true)
-        create index(:email_credentials, [:email], unique: true)
+        # create index(:email_credentials, [:email], unique: true)
     end
 end

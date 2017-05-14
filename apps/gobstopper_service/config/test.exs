@@ -22,3 +22,5 @@ config :guardian, Guardian,
     secret_key: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.e30.6bK5p0FPG1KY68mstRXiUjWtti5EbPmDg0QxP702j3WTEcI16GXZAU0NlXMQFnyPsrDyqCv9p6KRqMg7LcswMg",
     serializer: Gobstopper.Service.GuardianSerializer,
     hooks: GuardianDb
+
+import_config "../../../deps/sherbet_service/apps/sherbet_service/config/config.exs"

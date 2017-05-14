@@ -77,7 +77,7 @@ defmodule Gobstopper.API.Auth.EmailTest do
             assert :ok == Auth.Email.remove(token)
             assert { :ok, { :none, nil } } == Auth.Email.get(token)
             assert { :error, "Invalid credentials" } == Auth.Email.login("foo@bar", "secret")
-            assert :ok = Auth.Email.set(token, "foo@bar", "secret")
+            assert :ok == Auth.Email.set(token, "foo@bar", "secret")
             assert { :ok, { :unverified, "foo@bar" } } == Auth.Email.get(token)
             assert { :ok, _ } = Auth.Email.login("foo@bar", "secret")
         end

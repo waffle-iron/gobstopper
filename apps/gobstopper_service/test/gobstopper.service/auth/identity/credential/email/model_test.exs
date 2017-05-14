@@ -5,7 +5,6 @@ defmodule Gobstopper.Service.Auth.Identity.Credential.Email.ModelTest do
 
     @valid_model %Email.Model{
         identity_id: 1,
-        email: "foo@foo",
         password: "test",
         password_hash: "test"
     }
@@ -20,12 +19,6 @@ defmodule Gobstopper.Service.Auth.Identity.Credential.Email.ModelTest do
         assert_change(@valid_model, %{ identity_id: 0 }, :update_changeset)
     end
 
-    test "only email" do
-        refute_change(%Email.Model{}, %{ email: @valid_model.email }, :insert_changeset)
-
-        assert_change(@valid_model, %{ email: "foo@bar" }, :update_changeset)
-    end
-
     test "only password" do
         refute_change(%Email.Model{}, %{ password: @valid_model.password }, :insert_changeset)
 
@@ -36,10 +29,6 @@ defmodule Gobstopper.Service.Auth.Identity.Credential.Email.ModelTest do
         refute_change(@valid_model, %{ identity_id: nil }, :insert_changeset)
     end
 
-    test "without email" do
-        refute_change(@valid_model, %{ email: nil }, :insert_changeset)
-    end
-
     test "without password" do
         refute_change(@valid_model, %{ password: nil }, :insert_changeset)
     end
@@ -48,26 +37,6 @@ defmodule Gobstopper.Service.Auth.Identity.Credential.Email.ModelTest do
         assert_change(@valid_model, %{}, :insert_changeset)
 
         assert_change(@valid_model, %{}, :update_changeset)
-    end
-
-    test "email formatting" do
-        refute_change(@valid_model, %{ email: "test" }, :insert_changeset)
-        |> assert_error_value(:email, { "should contain a local part and domain separated by '@'", [validation: :email] })
-
-        refute_change(@valid_model, %{ email: "@" }, :insert_changeset)
-        |> assert_error_value(:email, { "should contain a local part and domain separated by '@'", [validation: :email] })
-
-        refute_change(@valid_model, %{ email: "test@" }, :insert_changeset)
-        |> assert_error_value(:email, { "should contain a local part and domain separated by '@'", [validation: :email] })
-
-        refute_change(@valid_model, %{ email: "test" }, :update_changeset)
-        |> assert_error_value(:email, { "should contain a local part and domain separated by '@'", [validation: :email] })
-
-        refute_change(@valid_model, %{ email: "@" }, :update_changeset)
-        |> assert_error_value(:email, { "should contain a local part and domain separated by '@'", [validation: :email] })
-
-        refute_change(@valid_model, %{ email: "test@" }, :update_changeset)
-        |> assert_error_value(:email, { "should contain a local part and domain separated by '@'", [validation: :email] })
     end
 
     test "password hashing" do
@@ -89,27 +58,21 @@ defmodule Gobstopper.Service.Auth.Identity.Credential.Email.ModelTest do
         identity2 = Gobstopper.Service.Repo.insert!(Gobstopper.Service.Auth.Identity.Model.changeset(%Gobstopper.Service.Auth.Identity.Model{}))
         credential = Gobstopper.Service.Repo.insert!(Email.Model.insert_changeset(@valid_model, %{ identity_id: identity.id }))
 
-        assert_change(@valid_model, %{ identity_id: identity2.id, email: @valid_model.email }, :insert_changeset)
-        |> assert_insert(:error)
-        |> assert_error_value(:email, { "has already been taken", [] })
-
-        assert_change(@valid_model, %{ identity_id: identity.id, email: @valid_model.email <> ".test" }, :insert_changeset)
+        assert_change(@valid_model, %{ identity_id: identity.id }, :insert_changeset)
         |> assert_insert(:error)
         |> assert_error_value(:identity_id, { "has already been taken", [] })
 
-        assert_change(@valid_model, %{ identity_id: 0, email: @valid_model.email <> ".test" }, :insert_changeset)
+        assert_change(@valid_model, %{ identity_id: 0 }, :insert_changeset)
         |> assert_insert(:error)
         |> assert_error_value(:identity, { "does not exist", [] })
 
-        assert_change(@valid_model, %{ identity_id: identity2.id, email: @valid_model.email <> ".test" }, :insert_changeset)
+        assert_change(@valid_model, %{ identity_id: identity2.id }, :insert_changeset)
         |> assert_insert(:ok)
     end
 
     test "update" do
         identity = Gobstopper.Service.Repo.insert!(Gobstopper.Service.Auth.Identity.Model.changeset(%Gobstopper.Service.Auth.Identity.Model{}))
-        credential_foo = Gobstopper.Service.Repo.insert!(Email.Model.insert_changeset(%Email.Model{}, %{ identity_id: identity.id, email: "foo@foo", password: "test" }))
-
-        assert { :ok, %{ email: "a@a" } } = Gobstopper.Service.Repo.update(Email.Model.update_changeset(credential_foo, %{ email: "a@a" }))
+        credential_foo = Gobstopper.Service.Repo.insert!(Email.Model.insert_changeset(%Email.Model{}, %{ identity_id: identity.id,  password: "test" }))
 
         assert { :ok, credential } = Gobstopper.Service.Repo.update(Email.Model.update_changeset(credential_foo, %{ password: "new" }))
         assert credential.password_hash != credential_foo.password_hash
