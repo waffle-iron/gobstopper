@@ -20,7 +20,7 @@ defmodule Gobstopper.Service.Auth.Identity do
     @spec create(atom, term) :: { :ok, String.t } | { :error, String.t }
     def create(type, credential) do
         with { :identity, { :ok, identity } } <- { :identity, unique_identity(Gobstopper.Service.Repo.insert(Identity.Model.changeset(%Identity.Model{}))) },
-             { :create_credential, :ok } <- { :create_credential, Identity.Credential.create(type, identity.id, credential) },
+             { :create_credential, :ok } <- { :create_credential, Identity.Credential.create(type, identity, credential) },
              { :jwt, { :ok, jwt, _ } } <- { :jwt, Guardian.encode_and_sign(identity) } do
                 { :ok, jwt }
         else
@@ -39,7 +39,7 @@ defmodule Gobstopper.Service.Auth.Identity do
     """
     @spec create(atom, term, String.t) :: :ok | { :error, String.t }
     def create(type, credential, token) do
-        with { :identity, identity } when is_integer(identity) <- { :identity, verify_id(token) },
+        with { :identity, identity = %Identity.Model{} } <- { :identity, verify_identity(token) },
              { :create_credential, :ok } <- { :create_credential, Identity.Credential.create(type, identity, credential) } do
                 :ok
         else
@@ -55,7 +55,7 @@ defmodule Gobstopper.Service.Auth.Identity do
     """
     @spec update(atom, term, String.t) :: :ok | { :error, String.t }
     def update(type, credential, token) do
-        case verify_id(token) do
+        case verify_identity(token) do
             nil -> { :error, "Invalid token" }
             identity -> Identity.Credential.change(type, identity, credential)
         end
@@ -68,7 +68,7 @@ defmodule Gobstopper.Service.Auth.Identity do
     """
     @spec remove(atom, String.t) :: :ok | { :error, String.t }
     def remove(type, token) do
-        case verify_id(token) do
+        case verify_identity(token) do
             nil -> { :error, "Invalid token" }
             identity -> Identity.Credential.revoke(type, identity)
         end
@@ -81,15 +81,11 @@ defmodule Gobstopper.Service.Auth.Identity do
     """
     @spec login(atom, term) :: { :ok, String.t } | { :error, String.t }
     def login(type, credential) do
-        with { :id, { :ok, id } } <- { :id, Identity.Credential.authenticate(type, credential) },
-             { :identity, identity = %Identity.Model{} } <- { :identity, Gobstopper.Service.Repo.get(Identity.Model, id) },
+        with { :identity, { :ok, identity } } <- { :identity, Identity.Credential.authenticate(type, credential) },
              { :jwt, { :ok, jwt, _ } } <- { :jwt, Guardian.encode_and_sign(identity) } do
                 { :ok, jwt }
         else
-            { :id, { :error, reason } } -> { :error, reason }
-            { :identity, nil } ->
-                Logger.debug("get identity: #{inspect(Identity.Credential.authenticate(type, credential))}")
-                { :error, "Invalid credentials" }
+            { :identity, { :error, reason } } -> { :error, reason }
             { :jwt, { :error, _ } } -> { :error, "Could not create JWT" }
         end
     end
@@ -107,11 +103,11 @@ defmodule Gobstopper.Service.Auth.Identity do
         end
     end
 
-    @spec verify_id(String.t) :: integer | nil
-    defp verify_id(token) do
+    @spec verify_identity(String.t) :: Identity.Model.t | nil
+    defp verify_identity(token) do
         with { :ok, %{ "sub" => sub } } <- Guardian.decode_and_verify(token),
              { :ok, identity } <- Guardian.serializer.from_token(sub) do
-                identity.id
+                identity
         else
             _ -> nil
         end
@@ -125,11 +121,9 @@ defmodule Gobstopper.Service.Auth.Identity do
     """
     @spec verify(String.t) :: String.t | nil
     def verify(token) do
-        with { :ok, %{ "sub" => sub } } <- Guardian.decode_and_verify(token),
-             { :ok, identity } <- Guardian.serializer.from_token(sub) do
-                identity.identity
-        else
-            _ -> nil
+        case verify_identity(token) do
+            nil -> nil
+            identity -> identity.identity
         end
     end
 
@@ -141,7 +135,7 @@ defmodule Gobstopper.Service.Auth.Identity do
     """
     @spec credential?(atom, String.t) :: { :ok, boolean } | { :error, String.t }
     def credential?(type, token) do
-        case verify_id(token) do
+        case verify_identity(token) do
             nil -> { :error, "Invalid token" }
             identity -> { :ok, Identity.Credential.credential?(type, identity) }
         end
@@ -164,7 +158,7 @@ defmodule Gobstopper.Service.Auth.Identity do
     """
     @spec all_credentials(String.t) :: { :ok, [{ atom, { :unverified | :verified, String.t } | { :none, nil } }] } | { :error, String.t }
     def all_credentials(token) do
-        case verify_id(token) do
+        case verify_identity(token) do
             nil -> { :error, "Invalid token" }
             identity -> { :ok, (for type <- @credential_types, do: { type, Identity.Credential.info(type, identity) }) }
         end

@@ -15,12 +15,10 @@ defmodule Gobstopper.Service.Auth.Identity.Credential.Email do
     @type uuid :: String.t
 
     def create(identity, { email, pass }) do
-        with { :identity, public_identity } <- { :identity, Gobstopper.Service.Repo.get(Identity.Model, identity) },
-             { :credential, { :ok, _ } } <- { :credential, Gobstopper.Service.Repo.insert(Credential.Email.Model.insert_changeset(%Credential.Email.Model{}, %{ password: pass, identity_id: identity })) },
-             { :email, { :ok, _ } } <- { :email, new_email(public_identity.identity, email) } do
+        with { :credential, { :ok, _ } } <- { :credential, Gobstopper.Service.Repo.insert(Credential.Email.Model.insert_changeset(%Credential.Email.Model{}, %{ password: pass, identity_id: identity.id })) },
+             { :email, { :ok, _ } } <- { :email, new_email(identity.identity, email) } do
                 :ok
         else
-            { :identity, _ } -> { :error, "Failed to create credential" }
             { :credential, { :error, changeset } } ->
                 Logger.debug("create: #{inspect(changeset.errors)}")
                 { :error, "Failed to create credential" }
@@ -31,27 +29,26 @@ defmodule Gobstopper.Service.Auth.Identity.Credential.Email do
     end
 
     def change(identity, { email, pass }) do
-        with { :identity, public_identity } <- { :identity, Gobstopper.Service.Repo.get(Identity.Model, identity) },
-             { :credential, credential = %Credential.Email.Model{} } <- { :credential, Gobstopper.Service.Repo.get_by(Credential.Email.Model, identity_id: identity) },
-             { :email, { { :ok, prev_email }, { :ok, source } } } <- { :email, set_email(public_identity.identity, email) } do
-                case Gobstopper.Service.Repo.update(Credential.Email.Model.insert_changeset(credential, %{ password: pass, identity_id: identity })) do
+        with { :credential, credential = %Credential.Email.Model{} } <- { :credential, Gobstopper.Service.Repo.get_by(Credential.Email.Model, identity_id: identity.id) },
+             { :email, { { :ok, prev_email }, { :ok, source } } } <- { :email, set_email(identity.identity, email) } do
+                case Gobstopper.Service.Repo.update(Credential.Email.Model.insert_changeset(credential, %{ password: pass, identity_id: identity.id })) do
                     { :ok, _ } -> :ok
                     { :error, changeset } ->
                         :ok = case source do
                             :new ->
-                                :ok = Contact.Email.remove(public_identity.identity, email)
+                                :ok = Contact.Email.remove(identity.identity, email)
 
                                 case prev_email do
                                     :same -> :error
                                     nil -> :ok
-                                    email -> Contact.Email.set_priority(public_identity.identity, email, :primary)
+                                    email -> Contact.Email.set_priority(identity.identity, email, :primary)
                                 end
 
                             :existing ->
                                 case prev_email do
                                     :same -> :ok
-                                    nil -> Contact.Email.set_priority(public_identity.identity, email, :secondary)
-                                    email -> Contact.Email.set_priority(public_identity.identity, email, :primary)
+                                    nil -> Contact.Email.set_priority(identity.identity, email, :secondary)
+                                    email -> Contact.Email.set_priority(identity.identity, email, :primary)
                                 end
                         end
 
@@ -59,14 +56,13 @@ defmodule Gobstopper.Service.Auth.Identity.Credential.Email do
                         { :error, "Failed to change credential" }
                 end
         else
-            { :identity, _ } -> { :error, "Failed to change credential" }
             { :credential, nil } -> { :error, "No email credential exists" }
             { :email, { _, { { :error, _ }, _ } } } -> { :error, "Failed to change credential" }
         end
     end
 
     def revoke(identity) do
-        with { :credential, credential = %Credential.Email.Model{} } <- { :credential, Gobstopper.Service.Repo.get_by(Credential.Email.Model, identity_id: identity) },
+        with { :credential, credential = %Credential.Email.Model{} } <- { :credential, Gobstopper.Service.Repo.get_by(Credential.Email.Model, identity_id: identity.id) },
              { :delete, { :ok, _ } } <- { :delete, Gobstopper.Service.Repo.delete(credential) } do
                 :ok
         else
@@ -78,20 +74,16 @@ defmodule Gobstopper.Service.Auth.Identity.Credential.Email do
     end
 
     def credential?(identity) do
-        nil != Gobstopper.Service.Repo.get_by(Credential.Email.Model, identity_id: identity)
+        nil != Gobstopper.Service.Repo.get_by(Credential.Email.Model, identity_id: identity.id)
     end
 
     def info(identity) do
         case credential?(identity) do
             false -> { :none, nil }
             true ->
-                case Gobstopper.Service.Repo.get(Identity.Model, identity) do
-                    nil -> { :none, nil }
-                    public_identity ->
-                        case Contact.Email.primary_contact(public_identity.identity) do
-                            { :ok, info } -> info
-                            { :error, _ } -> { :none, nil }
-                        end
+                case Contact.Email.primary_contact(identity.identity) do
+                    { :ok, info } -> info
+                    { :error, _ } -> { :none, nil }
                 end
         end
     end
@@ -99,10 +91,10 @@ defmodule Gobstopper.Service.Auth.Identity.Credential.Email do
     def authenticate({ email, pass }) do
         with { :owner, { :ok, id } } <- { :owner, Contact.Email.owner(email) },
              { :primary, { :ok, { _, ^email } } } <- { :primary, Contact.Email.primary_contact(id) },
-             { :identity, %Gobstopper.Service.Auth.Identity.Model{ id: identity } } <- { :identity, Gobstopper.Service.Repo.get_by(Gobstopper.Service.Auth.Identity.Model, identity: id) },
-             { :credential, credential = %Credential.Email.Model{} } <- { :credential, Gobstopper.Service.Repo.get_by(Credential.Email.Model, identity_id: identity) },
+             { :identity, identity = %Identity.Model{} } <- { :identity, Gobstopper.Service.Repo.get_by(Identity.Model, identity: id) },
+             { :credential, credential = %Credential.Email.Model{} } <- { :credential, Gobstopper.Service.Repo.get_by(Credential.Email.Model, identity_id: identity.id) },
              { :match, true } <- { :match, match(credential, pass) } do
-                { :ok, credential.identity_id }
+                { :ok, identity }
         else
             { :owner, { :error, _ } } -> { :error, "Invalid credentials" }
             { :primary, _ } -> { :error, "Invalid credentials" }
@@ -112,7 +104,7 @@ defmodule Gobstopper.Service.Auth.Identity.Credential.Email do
         end
     end
 
-    @spec match(Ecto.Schema.t, String.t) :: boolean()
+    @spec match(Ecto.Schema.t | nil, String.t) :: boolean()
     defp match(nil, _), do: false
     defp match(credential, pass), do: Comeonin.Bcrypt.checkpw(pass, credential.password_hash)
 

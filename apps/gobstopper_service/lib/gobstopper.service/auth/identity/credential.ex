@@ -15,6 +15,8 @@ defmodule Gobstopper.Service.Auth.Identity.Credential do
       implementation for that credential should fall under `#{String.slice(to_string(__MODULE__), 7..-1)}.Email`.
     """
 
+    alias Gobstopper.Service.Auth.Identity
+
     @doc """
       Implement the behaviour for creating a new credential and associating it with
       the given identity.
@@ -24,7 +26,7 @@ defmodule Gobstopper.Service.Auth.Identity.Credential do
 
       If the operation was successful return `:ok`.
     """
-    @callback create(identity :: integer, credential :: term) :: :ok | { :error, reason :: String.t }
+    @callback create(identity :: Identity.Model.t, credential :: term) :: :ok | { :error, reason :: String.t }
 
     @doc """
       Implement the behaviour for changing a credential that is associated with the
@@ -32,7 +34,7 @@ defmodule Gobstopper.Service.Auth.Identity.Credential do
 
       If the operation was successful return `:ok`. Otherwise return the error.
     """
-    @callback change(identity :: integer, credential :: term) :: :ok | { :error, reason :: String.t }
+    @callback change(identity :: Identity.Model.t, credential :: term) :: :ok | { :error, reason :: String.t }
 
     @doc """
       Implement the behaviour for revoking the credential associated with the given
@@ -42,7 +44,7 @@ defmodule Gobstopper.Service.Auth.Identity.Credential do
 
       If the operation was successful return `:ok`.
     """
-    @callback revoke(identity :: integer) :: :ok | { :error, reason :: String.t }
+    @callback revoke(identity :: Identity.Model.t) :: :ok | { :error, reason :: String.t }
 
     @doc """
       Implement the behaviour for identifying if a credential exists for the given
@@ -50,7 +52,7 @@ defmodule Gobstopper.Service.Auth.Identity.Credential do
 
       If one exists return true, otherwise return false.
     """
-    @callback credential?(identity :: integer) :: boolean
+    @callback credential?(identity :: Identity.Model.t) :: boolean
 
     @doc """
       Implement the behaviour for retrieving the presentable information for the
@@ -62,7 +64,7 @@ defmodule Gobstopper.Service.Auth.Identity.Credential do
       Verification state is used to infer whether the given credential is guaranteed
       to be owned by the identity owner.
     """
-    @callback info(identity :: integer) :: { state :: :unverified | :verified, presentable :: String.t } | { :none, nil }
+    @callback info(identity :: Identity.Model.t) :: { state :: :unverified | :verified, presentable :: String.t } | { :none, nil }
 
     @doc """
       Implement the behaviour for authenticating an identity using the given credential.
@@ -70,7 +72,7 @@ defmodule Gobstopper.Service.Auth.Identity.Credential do
       If the operation was successful return `{ :ok, identity }`, where `identity` is
       the identity of the authenticated credential. Otherwise return an error.
     """
-    @callback authenticate(credential :: term) :: { :ok, identity :: integer } | { :error, reason :: String.t }
+    @callback authenticate(credential :: term) :: { :ok, identity :: Identity.Model.t } | { :error, reason :: String.t }
 
     @doc """
       Create the credential type for the given identity.
@@ -79,7 +81,7 @@ defmodule Gobstopper.Service.Auth.Identity.Credential do
       of that type associated with it, then it will succeed. Otherwise returns the
       reason of failure.
     """
-    @spec create(atom, integer, term) :: :ok | { :error, String.t }
+    @spec create(atom, Identity.Model.t, term) :: :ok | { :error, String.t }
     def create(type, identity, credential) do
         atom_to_module(type).create(identity, credential)
     end
@@ -89,7 +91,7 @@ defmodule Gobstopper.Service.Auth.Identity.Credential do
 
       Returns `:ok` if the operation was successful, otherwise returns an error.
     """
-    @spec change(atom, integer, term) :: :ok | { :error, String.t }
+    @spec change(atom, Identity.Model.t, term) :: :ok | { :error, String.t }
     def change(type, identity, credential) do
         atom_to_module(type).change(identity, credential)
     end
@@ -100,7 +102,7 @@ defmodule Gobstopper.Service.Auth.Identity.Credential do
       Returns `:ok` if the operation was successful, otherwise returns an error if
       there was no such credential or the operation could not be completed.
     """
-    @spec revoke(atom, integer) :: :ok | { :error, String.t }
+    @spec revoke(atom, Identity.Model.t) :: :ok | { :error, String.t }
     def revoke(type, identity) do
         atom_to_module(type).revoke(identity)
     end
@@ -110,7 +112,7 @@ defmodule Gobstopper.Service.Auth.Identity.Credential do
 
       Returns true if one exists, otherwise false.
     """
-    @spec credential?(atom, integer) :: boolean
+    @spec credential?(atom, Identity.Model.t) :: boolean
     def credential?(type, identity) do
         atom_to_module(type).credential?(identity)
     end
@@ -122,7 +124,7 @@ defmodule Gobstopper.Service.Auth.Identity.Credential do
       credential (`:unverified` or `:verified`) and the presentable string. Otherwise
       it will return `{ :none, nil }`.
     """
-    @spec info(atom, integer) :: { :unverified | :verified, String.t } | { :none, nil }
+    @spec info(atom, Identity.Model.t) :: { :unverified | :verified, String.t } | { :none, nil }
     def info(type, identity) do
         atom_to_module(type).info(identity)
     end
@@ -133,7 +135,7 @@ defmodule Gobstopper.Service.Auth.Identity.Credential do
       If credential can be successfully authenticated, then it returns the identity.
       Otherwise returns the reason of failure.
     """
-    @spec authenticate(atom, term) :: { :ok, integer } | { :error, String.t }
+    @spec authenticate(atom, term) :: { :ok, Identity.Model.t } | { :error, String.t }
     def authenticate(type, credential) do
         atom_to_module(type).authenticate(credential)
     end
