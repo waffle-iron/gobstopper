@@ -11,8 +11,8 @@ defmodule Gobstopper.Mixfile do
             name: "Gobstopper",
             source_url: "https://github.com/ScrimpyCat/gobstopper",
             docs: [
-                main: "readme",
-                extras: ["README.md"]
+                main: "gobstopper",
+                extras: ["README.md": [filename: "gobstopper", title: "Gobstopper"]],
             ]
         ]
     end
