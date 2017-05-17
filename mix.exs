@@ -32,7 +32,7 @@ defmodule Gobstopper.Mixfile do
     defp deps do
         [
             { :ex_doc, "~> 0.15.1", only: :dev, runtime: false },
-            { :simple_markdown, "~> 0.2.1", only: :dev, runtime: false }
+            { :simple_markdown, "~> 0.3.0", only: :dev, runtime: false }
         ]
     end
 end

@@ -21,5 +21,5 @@
   "protecto": {:git, "https://github.com/ScrimpyCat/Protecto.git", "4047f5a7699b93136d7852a5db64e1e2096c193f", []},
   "sherbet_api": {:git, "https://github.com/ScrimpyCat/sherbet.git", "f0118d9d36b8dde4bee514d6a415e63fdea5ba7d", [sparse: "apps/sherbet_api"]},
   "sherbet_service": {:git, "https://github.com/ScrimpyCat/sherbet.git", "3308d2646c6e44efb61cb34ea0c64271cd4b37ad", [sparse: "apps/sherbet_service"]},
-  "simple_markdown": {:hex, :simple_markdown, "0.2.1", "c61b5d76854086dd6afbcf3cfa90be08616ec704f34a14233ed4403e103e335c", [:mix], [{:html_entities, "~> 0.3", [hex: :html_entities, optional: false]}, {:parsey, "~> 0.0.2", [hex: :parsey, optional: false]}]},
+  "simple_markdown": {:hex, :simple_markdown, "0.3.0", "5e5cc27c67cec3fb7994124e42f9be3272845e9b06d3b2c810fa85694ed80932", [:mix], [{:html_entities, "~> 0.3", [hex: :html_entities, optional: false]}, {:parsey, "~> 0.0.2", [hex: :parsey, optional: false]}]},
   "uuid": {:hex, :uuid, "1.1.7", "007afd58273bc0bc7f849c3bdc763e2f8124e83b957e515368c498b641f7ab69", [:mix], []}}
