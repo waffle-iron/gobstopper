@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/ZURASTA/gobstopper.png?label=ready&title=Ready)](https://waffle.io/ZURASTA/gobstopper?utm_source=badge)
 # Gobstopper (Identity and Credential Management)
 
 Manages the identities and credentials used to authorise access to those identities. An identity is a unique ID representing an entity, that can then be used to associate other information with. It is connected to any number of credentials, which are used to prove the entity is who they say they are.
